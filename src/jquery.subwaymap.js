@@ -327,128 +327,162 @@ THE SOFTWARE.
         ctx.beginPath();
         switch(data.marker.toLowerCase())
         {
-            case "interchange":
-            case "@interchange":
-                ctx.lineWidth = width;
-                if (data.markerInfo == "")
-                    ctx.arc(x, y, width * 0.7, 0, Math.PI * 2, true);
-                else
-                {
-                    var mDir = data.markerInfo.substr(0,1).toLowerCase();
-                    var mSize = parseInt(data.markerInfo.substr(1,10));
-                    if (((mDir == "v") || (mDir == "h")) && (mSize > 1))
-                    {
-                        if (mDir == "v")
-                        {
-                            ctx.arc(x, y, width * 0.7,290 * Math.PI/180, 250 * Math.PI/180, false);
-                            ctx.arc(x, y-(width*mSize), width * 0.7,110 * Math.PI/180, 70 * Math.PI/180, false);
-                        }
-                        else
-                        {
-                            ctx.arc(x, y, width * 0.7,20 * Math.PI/180, 340 * Math.PI/180, false);
-                            ctx.arc(x+(width*mSize), y, width * 0.7,200 * Math.PI/180, 160 * Math.PI/180, false);
-                        }
-                    }
-                    else
-                        ctx.arc(x, y, width * 0.7, 0, Math.PI * 2, true);
-                }
-                break;
+            // case "interchange":
+            // case "@interchange":
+            //     ctx.lineWidth = width;
+            //     if (data.markerInfo == "")
+            //         ctx.arc(x, y, width * 0.7, 0, Math.PI * 2, true);
+            //     else
+            //     {
+            //         var mDir = data.markerInfo.substr(0,1).toLowerCase();
+            //         var mSize = parseInt(data.markerInfo.substr(1,10));
+            //         if (((mDir == "v") || (mDir == "h")) && (mSize > 1))
+            //         {
+            //             if (mDir == "v")
+            //             {
+            //                 ctx.arc(x, y, width * 0.7,290 * Math.PI/180, 250 * Math.PI/180, false);
+            //                 ctx.arc(x, y-(width*mSize), width * 0.7,110 * Math.PI/180, 70 * Math.PI/180, false);
+            //             }
+            //             else
+            //             {
+            //                 ctx.arc(x, y, width * 0.7,20 * Math.PI/180, 340 * Math.PI/180, false);
+            //                 ctx.arc(x+(width*mSize), y, width * 0.7,200 * Math.PI/180, 160 * Math.PI/180, false);
+            //             }
+            //         }
+            //         else
+            //             ctx.arc(x, y, width * 0.7, 0, Math.PI * 2, true);
+            //     }
+            //     break;
             case "station":
             case "@station":
                 ctx.lineWidth = width/2;
                 ctx.arc(x, y, width/2, 0, Math.PI * 2, true);
                 break;
-            case "multi-interchange":
-            case "@multi-interchange":
+            case "interchange":
+            case "@interchange":
                 ctx.lineWidth = width;
-                if (data.markerInfo == "")
-                    ctx.arc(x, y, width * 0.7, 0, Math.PI * 2, true);
+                var radius = width * 0.7;
+                if (data.markerInfo == "") {
+                    ctx.arc(x, y, radius, 0, Math.PI*2, true);
+                }
                 else
                 {
                     // Get additional points
-                    var mPts = data.markerInfo.split("/");
+                    var mPts = data.markerInfo.split("|");
                     // Create initial point
                     var pt = {};
-                    pt.x = data.x;
-                    pt.y = data.y;
+                    pt.x = data.x * scale;
+                    pt.y = data.y * scale;
                     pt.id = 0;
                     pt.edges = {out: [], in: []};
-                    // Create points and edge sets
+                    // Create point set
                     var pts = [pt];
-                    var edges = [];
                     // Process interchange points
-                    for(var i=0; i<mPts.length; i++) {
-                        pt.x = mPts[i].split(",")[0];
-                        pt.y = mPts[i].split(",")[0];
+                    for(var i=0; i<mPts.length; i++)
+                    {
+                        var pt = {};
+                        pt.x = mPts[i].split(",")[0] * scale;
+                        pt.y = mPts[i].split(",")[1] * scale;
                         pt.id = i+1;
-                        pt.edges = {out: [], in: []};
+                        pt.edges = {};
+                        pt.edges.out = [];
+                        pt.edges.in = [];
                         pts.push(pt);
                     }
                     // Process edges
-                    for(var i=0; i<pts.length-1; i++) {
+                    for(var i=0; i<pts.length-1; i++)
+                    {
                         var edge = {};
                         edge.start = pts[i];
                         edge.end = pts[i+1];
                         edge.length = Math.sqrt(Math.pow(edge.start.x-edge.end.x, 2)+Math.pow(edge.start.y-edge.end.y, 2));
-                        edge.angle = Math.atan((edge.start.x-edge.end.x)/(edge.start.y-edge.end.y));
-                        if(edge.angle<1) {
-                            edge.angle += 2*Math.PI;
+                        // Calculate angle
+                        var dx = (edge.start.x-edge.end.x);
+                        var dy = (edge.start.y-edge.end.y);
+                        var orig = Math.atan((edge.start.x-edge.end.x)/(edge.start.y-edge.end.y))/Math.PI*180;
+                        // Correct for atan output range
+                        if(dy>0)
+                        {
+                            edge.angle = 3*Math.PI/2 - Math.atan(dx/dy);
                         }
+                        else if(dy<0)
+                        {
+                            edge.angle = Math.PI/2 - Math.atan(dx/dy);
+                        }
+                        else
+                        {
+                            if(dx>0)
+                            {
+                                edge.angle = Math.PI;
+                            }
+                            else
+                            {
+                                edge.angle = 0;
+                            }
+                        }
+                        // Add edge as outbound or inbound to points
                         edge.start.edges.out.push(edge);
                         edge.end.edges.in.push(edge);
-                        edges.push(edge);
                     }
                     // Draw marker
-                    var p, o, i, curPt = 0;
+                    var p, oe, ie, curPt = 0;
                     // 2n-2 arcs will be drawn
-                    for(var i=0; i<pts.length*2-2; i++) {
+                    for(var i=0; i<pts.length*2-2; i++)
+                    {
                         // Get the current point
                         p = pts[curPt];
                         // Draw first point
-                        if(i===0) {
+                        if(i===0)
+                        {
                             // Get the outbound edge
-                            o = p.edges.out[0];
+                            oe = p.edges.out[0];
                             // Draw arc
-                            ctx.arc(p.x, p.y, width * 0.7,
-                                    o.angle + 20*Math.PI/180,
-                                    o.angle + 340*Math.PI/180,
+                            ctx.arc(p.x, p.y, radius,
+                                    oe.angle + 20*Math.PI/180,
+                                    oe.angle - 20*Math.PI/180,
                                     false);
                             // Go to next point
                             curPt++;
+                        }
                         // Draw outbound arcs
-                        } else if(i<pts.length) {
+                        else if(i<pts.length-1)
+                        {
                             // Get the inbound edge
-                            i = p.edges.in[0];
+                            ie = p.edges.in[0];
                             // Get the outbound edge
-                            o = p.edges.out[0];
+                            oe = p.edges.out[0];
                             // Draw arc
-                            ctx.arc(p.x, p.y, width * 0.7,
-                                    i.angle + 20*Math.PI/180,
-                                    o.angle - 20*Math.PI/180,
+                            ctx.arc(p.x, p.y, radius,
+                                    ie.angle + Math.PI + 20*Math.PI/180,
+                                    oe.angle - 20*Math.PI/180,
                                     false);
                             // Go to next point
                             curPt++;
+                        }
                         // Draw last point
-                        } else if(i===pts.length) {
+                        else if(i===pts.length-1)
+                        {
                             // Get the inbound edge
-                            i = p.edges.in[0];
+                            ie = p.edges.in[0];
                             // Draw arc
-                            ctx.arc(p.x, p.y, width * 0.7,
-                                    i.angle + 20*Math.PI/180,
-                                    i.angle + 340*Math.PI/180,
+                            ctx.arc(p.x, p.y, radius,
+                                    ie.angle + Math.PI + 20*Math.PI/180,
+                                    ie.angle + Math.PI - 20*Math.PI/180,
                                     false);
                             // Go to previous point
                             curPt--;
+                        }
                         // Draw inbound arcs
-                        } else {
+                        else
+                        {
                             // Get the inbound edge
-                            i = p.edges.in[0];
+                            ie = p.edges.in[0];
                             // Get the outbound edge
-                            o = p.edges.out[0];
+                            oe = p.edges.out[0];
                             // Draw arc
-                            ctx.arc(p.x, p.y, width * 0.7,
-                                    o.angle + 20*Math.PI/180,
-                                    i.angle - 20*Math.PI/180,
+                            ctx.arc(p.x, p.y, radius,
+                                    oe.angle + 20*Math.PI/180,
+                                    ie.angle + Math.PI - 20*Math.PI/180,
                                     false);
                             // Go to previous point
                             curPt--;
