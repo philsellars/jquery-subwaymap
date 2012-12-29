@@ -22,6 +22,30 @@ THE SOFTWARE.
 
 */
 
+/*
+
+Updates to this plugin Copyright (c) 2013  David Newell ddnewell@alumni.stanford.edu http://david.newell.at
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+*/
+
 (function ($) {
 
     var plugin = {
@@ -120,7 +144,7 @@ THE SOFTWARE.
 
         //el.css("width", this.options.pixelWidth);
         //el.css("height", this.options.pixelHeight);
-        self = this;
+        var self = this;
         var lineLabels = [];
         var supportsCanvas = $("<canvas></canvas>")[0].getContext;
         if (supportsCanvas) {
@@ -276,8 +300,7 @@ THE SOFTWARE.
                         case "se": xVal = (scale / 2); yVal = -1; dirVal = -1; break;
                         case "ne": xVal = (scale / 2); yVal = 1; dirVal = -1; break;
                     }
-                    this._debug((currNode.x * scale) + xVal + ", " + (currNode.y * scale) + "; " + (nextNode.x + (dirVal * xDiff / 2)) * scale + ", " +
-                    (nextNode.y + (yVal * xDiff / 2)) * scale)
+                    this._debug((currNode.x * scale) + xVal + ", " + (currNode.y * scale) + "; " + (nextNode.x + (dirVal * xDiff / 2)) * scale + ", " + (nextNode.y + (yVal * xDiff / 2)) * scale);
                     ctx.bezierCurveTo(
                             (currNode.x * scale) + xVal, (currNode.y * scale),
                             (currNode.x * scale) + xVal, (currNode.y * scale),
@@ -327,37 +350,6 @@ THE SOFTWARE.
         ctx.beginPath();
         switch(data.marker.toLowerCase())
         {
-            // case "interchange":
-            // case "@interchange":
-            //     ctx.lineWidth = width;
-            //     if (data.markerInfo == "")
-            //         ctx.arc(x, y, width * 0.7, 0, Math.PI * 2, true);
-            //     else
-            //     {
-            //         var mDir = data.markerInfo.substr(0,1).toLowerCase();
-            //         var mSize = parseInt(data.markerInfo.substr(1,10));
-            //         if (((mDir == "v") || (mDir == "h")) && (mSize > 1))
-            //         {
-            //             if (mDir == "v")
-            //             {
-            //                 ctx.arc(x, y, width * 0.7,290 * Math.PI/180, 250 * Math.PI/180, false);
-            //                 ctx.arc(x, y-(width*mSize), width * 0.7,110 * Math.PI/180, 70 * Math.PI/180, false);
-            //             }
-            //             else
-            //             {
-            //                 ctx.arc(x, y, width * 0.7,20 * Math.PI/180, 340 * Math.PI/180, false);
-            //                 ctx.arc(x+(width*mSize), y, width * 0.7,200 * Math.PI/180, 160 * Math.PI/180, false);
-            //             }
-            //         }
-            //         else
-            //             ctx.arc(x, y, width * 0.7, 0, Math.PI * 2, true);
-            //     }
-            //     break;
-            case "station":
-            case "@station":
-                ctx.lineWidth = width/2;
-                ctx.arc(x, y, width/2, 0, Math.PI * 2, true);
-                break;
             case "interchange":
             case "@interchange":
                 ctx.lineWidth = width;
@@ -399,7 +391,6 @@ THE SOFTWARE.
                         // Calculate angle
                         var dx = (edge.start.x-edge.end.x);
                         var dy = (edge.start.y-edge.end.y);
-                        var orig = Math.atan((edge.start.x-edge.end.x)/(edge.start.y-edge.end.y))/Math.PI*180;
                         // Correct for atan output range
                         if(dy>0)
                         {
@@ -489,6 +480,11 @@ THE SOFTWARE.
                         }
                     }
                 }
+                break;
+            case "station":
+            case "@station":
+                ctx.lineWidth = width/2;
+                ctx.arc(x, y, width/2, 0, Math.PI * 2, true);
                 break;
         }
         ctx.closePath();
