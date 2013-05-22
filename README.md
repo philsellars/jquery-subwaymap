@@ -15,12 +15,14 @@ Example:
 
     This entry will draw an interchange starting at (1,2) to the points (2,2) then (1,4)
 
-
-*Plugin now supports individual colours for stations using the 'data-color' attribute
-of a <li> item
+*(LI) data-color:* Plugin now supports individual colours for stations using the 'data-color' attribute
+of a list item
 
 Example:
-		<li data-coords='{0},{1}' data-marker='interchange' data-labelPos='{3}' data-color='red'></li>
+
+    <li data-coords='{0},{1}' data-marker='interchange' data-labelPos='{3}' data-color='red'></li>
+
+    
 
 ## Other updates
 
